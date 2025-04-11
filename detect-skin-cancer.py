@@ -107,6 +107,7 @@ if __name__ == '__main__':
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title('Pérdida por época')
+    plt.yscale("log")
     plt.legend()
     plt.grid(True)
     plt.savefig("perdida-por-epoca.png")
