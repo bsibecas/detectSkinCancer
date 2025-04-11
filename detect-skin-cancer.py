@@ -22,8 +22,8 @@ if __name__ == '__main__':
     ])
 
     # Carga de datasets
-    train_dir = "/home/21916177julio/skin_cancer_dataset/train/train"
-    test_dir = "/home/21916177julio/skin_cancer_dataset/test/test"
+    train_dir = "./skin_cancer_dataset/train/train"
+    test_dir = "./skin_cancer_dataset/test/test"
     train_dataset = datasets.ImageFolder(train_dir, transforms_train)
     test_dataset = datasets.ImageFolder(test_dir, transforms_test)
 
