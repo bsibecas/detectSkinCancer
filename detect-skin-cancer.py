@@ -27,8 +27,8 @@ if __name__ == '__main__':
     train_dataset = datasets.ImageFolder(train_dir, transforms_train)
     test_dataset = datasets.ImageFolder(test_dir, transforms_test)
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
-    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=False)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False)
 
     # Modelo y configuración
     model = torchvision.models.resnet18(pretrained=True)
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     model = model.to('cuda')
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     train_loss = []
     train_accuracy = []
