@@ -90,7 +90,7 @@ if __name__ == '__main__':
         running_loss = 0.0
         running_corrects = 0
         patience = 5
-        best_test_loss = float('inf')
+        best_test_loss = 0
 
         with torch.no_grad():
             for inputs, labels in test_dataloader:
