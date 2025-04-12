@@ -4,21 +4,18 @@ import torch
 import time
 from matplotlib import pyplot as plt
 import numpy as np
-import os
 
 if __name__ == '__main__':
-    # Transformaciones con más data augmentation
+    # Transformaciones
     transforms_train = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(15),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
-        transforms.RandomAffine(degrees=15, translate=(0.1, 0.1)),
+        transforms.RandomRotation(20),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-    
     transforms_test = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.CenterCrop((224, 224)),
@@ -35,22 +32,14 @@ if __name__ == '__main__':
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-    # Modelo
+    # Modelo y configuración
     model = torchvision.models.resnet18(pretrained=True)
 
-    # Añadir Dropout y actualizar capa final
-    model.fc = torch.nn.Sequential(
-        torch.nn.Dropout(0.5),  # Agregar dropout para evitar overfitting
-        torch.nn.Linear(model.fc.in_features, 256),
-        torch.nn.ReLU(),
-        torch.nn.Dropout(0.3),
-        torch.nn.Linear(256, 2)
-    )
+    model.fc = torch.nn.Linear(model.fc.in_features, 2)
     model = model.to('cuda')
 
-    # Configuración del optimizador y la pérdida
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-4)  # Mejorar tasa de aprendizaje
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
     train_loss = []
     train_accuracy = []
@@ -59,10 +48,6 @@ if __name__ == '__main__':
 
     num_epochs = 50
     start_time = time.time()
-
-    best_loss = float('inf')
-    patience = 5
-    patience_counter = 0
 
     for epoch in range(num_epochs):
         print(f"\nEpoch {epoch + 1}/{num_epochs}")
@@ -113,17 +98,6 @@ if __name__ == '__main__':
         test_accuracy.append(epoch_acc.item())
 
         print(f"[Test ] Loss: {epoch_loss:.4f} Acc: {epoch_acc:.2f}%")
-
-        # Early stopping check
-        if epoch_loss < best_loss:
-            best_loss = epoch_loss
-            patience_counter = 0
-            torch.save(model.state_dict(), 'best_model.pt')  # Guardar el mejor modelo
-        else:
-            patience_counter += 1
-            if patience_counter >= patience:
-                print("🚨 Early stopping activado.")
-                break
 
     total_time = time.time() - start_time
     print(f"\nEntrenamiento finalizado en {total_time:.2f} segundos.")
