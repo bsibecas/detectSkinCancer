@@ -53,7 +53,7 @@ if __name__ == '__main__':
     test_loss = []
     test_accuracy = []
 
-    num_epochs = 20
+    num_epochs = 40
     best_test_loss = float('inf')
     best_model_wts = copy.deepcopy(model.state_dict())
     patience = 5
