@@ -45,7 +45,7 @@ if __name__ == '__main__':
     model = model.to('cuda')
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001, weight_decay=1e-2)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
 
@@ -89,6 +89,7 @@ if __name__ == '__main__':
         model.eval()
         running_loss = 0.0
         running_corrects = 0
+        patience = 5
 
         with torch.no_grad():
             for inputs, labels in test_dataloader:
@@ -106,6 +107,17 @@ if __name__ == '__main__':
         test_accuracy.append(epoch_acc.item())
 
         print(f"[Test ] Loss: {epoch_loss:.4f} Acc: {epoch_acc:.2f}%")
+
+        # Early stopping logic
+        if test_loss < best_test_loss:
+            best_test_loss = test_loss
+            epochs_without_improvement = 0
+        else:
+            epochs_without_improvement += 1
+
+        if epochs_without_improvement >= patience:
+            print(f"Early stopping at epoch {epoch + 1}")
+            break
 
     total_time = time.time() - start_time
     print(f"\nEntrenamiento finalizado en {total_time:.2f} segundos.")
