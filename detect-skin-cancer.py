@@ -45,7 +45,7 @@ if __name__ == '__main__':
     model = model.to('cuda')
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001, weight_decay=1e-4)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001, weight_decay=1e-2)
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
 
