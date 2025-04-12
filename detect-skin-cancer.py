@@ -35,17 +35,17 @@ if __name__ == '__main__':
     # Modelo y configuración
     model = torchvision.models.resnet18(pretrained=True)
 
-    #model.fc = torch.nn.Linear(model.fc.in_features, 2)
-    model.fc = torch.nn.Sequential(
-        torch.nn.Linear(model.fc.in_features, 512),  # Capa FC adicional
-        torch.nn.ReLU(),  # Función de activación ReLU
-        torch.nn.Dropout(p=0.25),  # Dropout con 25% de probabilidad (puedes cambiar el valor)
-        torch.nn.Linear(512, 2)  # Capa final de salida
-    )
+    model.fc = torch.nn.Linear(model.fc.in_features, 2)
+    #model.fc = torch.nn.Sequential(
+    #    torch.nn.Linear(model.fc.in_features, 512),  # Capa FC adicional
+    #    torch.nn.ReLU(),  # Función de activación ReLU
+    #    torch.nn.Dropout(p=0.25),  # Dropout con 25% de probabilidad (puedes cambiar el valor)
+    #    torch.nn.Linear(512, 2)  # Capa final de salida
+    #)
     model = model.to('cuda')
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001, weight_decay=1e-4)
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
 
