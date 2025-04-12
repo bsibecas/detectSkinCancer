@@ -4,6 +4,8 @@ from torch import nn
 import time
 from matplotlib import pyplot as plt
 import numpy as np
+import os
+from sklearn.metrics import precision_score, recall_score, f1_score
 
 if __name__ == '__main__':
     # Transformaciones con más data augmentation
@@ -13,6 +15,7 @@ if __name__ == '__main__':
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+        transforms.RandomAffine(degrees=15, translate=(0.1, 0.1)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -36,19 +39,28 @@ if __name__ == '__main__':
     # Modelo con una capa extra y dropout
     model = models.resnet18(pretrained=True)
 
+    # Congelar todas las capas excepto la capa final
+    for param in model.parameters():
+        param.requires_grad = False
+    for param in model.fc.parameters():
+        param.requires_grad = True
+
     model.fc = nn.Sequential(
-        nn.Dropout(0.5),
+        nn.Dropout(0.6),  # Aumentar la tasa de dropout
         nn.Linear(model.fc.in_features, 256),
         nn.ReLU(),
-        nn.Dropout(0.3),
+        nn.Dropout(0.5),  # Aumentar la tasa de dropout
         nn.Linear(256, 2)
     )
 
     model = model.to('cuda')
 
     # Configuración
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-4)
+    # Usar pesos de clase si el dataset está desbalanceado
+    class_counts = [len(os.listdir(os.path.join(train_dir, class_name))) for class_name in os.listdir(train_dir)]
+    class_weights = 1.0 / torch.tensor(class_counts, dtype=torch.float32)
+    criterion = nn.CrossEntropyLoss(weight=class_weights.to('cuda'))
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
 
     train_loss = []
     train_accuracy = []
@@ -60,7 +72,7 @@ if __name__ == '__main__':
 
     # Early stopping
     best_loss = float('inf')
-    patience = 5
+    patience = 10  # Aumentar el número de épocas antes de early stopping
     patience_counter = 0
 
     for epoch in range(num_epochs):
@@ -96,6 +108,9 @@ if __name__ == '__main__':
         running_loss = 0.0
         running_corrects = 0
 
+        all_preds = []
+        all_labels = []
+
         with torch.no_grad():
             for inputs, labels in test_dataloader:
                 inputs, labels = inputs.to('cuda'), labels.to('cuda')
@@ -106,12 +121,21 @@ if __name__ == '__main__':
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels)
 
+                all_preds.extend(preds.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+
         epoch_loss = running_loss / len(test_dataset)
         epoch_acc = running_corrects.double() / len(test_dataset) * 100
         test_loss.append(epoch_loss)
         test_accuracy.append(epoch_acc.item())
 
         print(f"[Test ] Loss: {epoch_loss:.4f} Acc: {epoch_acc:.2f}%")
+
+        # Calcular otras métricas
+        precision = precision_score(all_labels, all_preds, average='weighted')
+        recall = recall_score(all_labels, all_preds, average='weighted')
+        f1 = f1_score(all_labels, all_preds, average='weighted')
+        print(f"Precision: {precision:.2f} Recall: {recall:.2f} F1-score: {f1:.2f}")
 
         # Early stopping check
         if epoch_loss < best_loss:
