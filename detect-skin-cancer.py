@@ -90,7 +90,7 @@ if __name__ == '__main__':
         running_loss = 0.0
         running_corrects = 0
         patience = 5
-        best_test_loss = 0
+        best_test_loss = float('inf')
 
         with torch.no_grad():
             for inputs, labels in test_dataloader:
@@ -110,11 +110,12 @@ if __name__ == '__main__':
         print(f"[Test ] Loss: {epoch_loss:.4f} Acc: {epoch_acc:.2f}%")
 
         # Early stopping logic
-        if test_loss < best_test_loss:
-            best_test_loss = test_loss
+        if epoch_loss < best_test_loss:
+            best_test_loss = epoch_loss
             epochs_without_improvement = 0
         else:
             epochs_without_improvement += 1
+            
 
         if epochs_without_improvement >= patience:
             print(f"Early stopping at epoch {epoch + 1}")
