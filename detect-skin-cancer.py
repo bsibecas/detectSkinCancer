@@ -6,13 +6,14 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 if __name__ == '__main__':
-    # Transformaciones
+    # Transformaciones con más data augmentation
     transforms_train = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(20),
         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
+        transforms.RandomAffine(degrees=15, translate=(0.1, 0.1)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -38,8 +39,12 @@ if __name__ == '__main__':
     model.fc = torch.nn.Linear(model.fc.in_features, 2)
     model = model.to('cuda')
 
+    # Optimizer and Loss Function
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-4)
+
+    # Learning Rate Scheduler
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
 
     train_loss = []
     train_accuracy = []
@@ -48,6 +53,10 @@ if __name__ == '__main__':
 
     num_epochs = 50
     start_time = time.time()
+
+    best_loss = float('inf')
+    patience = 5
+    patience_counter = 0
 
     for epoch in range(num_epochs):
         print(f"\nEpoch {epoch + 1}/{num_epochs}")
@@ -98,6 +107,20 @@ if __name__ == '__main__':
         test_accuracy.append(epoch_acc.item())
 
         print(f"[Test ] Loss: {epoch_loss:.4f} Acc: {epoch_acc:.2f}%")
+
+        # Learning rate scheduler step
+        scheduler.step(epoch_loss)
+
+        # Early stopping check
+        if epoch_loss < best_loss:
+            best_loss = epoch_loss
+            patience_counter = 0
+            torch.save(model.state_dict(), 'best_model.pt')  # Guardar el mejor modelo
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                print("🚨 Early stopping activado.")
+                break
 
     total_time = time.time() - start_time
     print(f"\nEntrenamiento finalizado en {total_time:.2f} segundos.")
