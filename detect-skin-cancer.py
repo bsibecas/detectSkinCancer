@@ -36,7 +36,7 @@ if __name__ == '__main__':
     model = model.to('cuda')
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.fc.parameters(), lr=0.000001)
+    optimizer = torch.optim.Adam(model.fc.parameters(), lr=0.0001)
 
     train_loss = []
     train_accuracy = []
