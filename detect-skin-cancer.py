@@ -109,6 +109,7 @@ if __name__ == '__main__':
     plt.title('Pérdida por época')
     plt.legend()
     plt.grid(True)
+    plt.savefig("perdida-por-epoca.png")
     plt.show()
 
     plt.figure()
@@ -119,4 +120,5 @@ if __name__ == '__main__':
     plt.title('Precisión por época')
     plt.legend()
     plt.grid(True)
+    plt.savefig("precision-por-epoca.png")
     plt.show()
