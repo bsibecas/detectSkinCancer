@@ -55,7 +55,7 @@ if __name__ == '__main__':
     test_loss = []
     test_accuracy = []
 
-    num_epochs = 50
+    num_epochs = 80
     start_time = time.time()
 
     for epoch in range(num_epochs):
