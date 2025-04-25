@@ -15,15 +15,15 @@ if __name__ == '__main__':
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
     transforms_test = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((224, 224)),8
         transforms.CenterCrop((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
     # Carga de datasets
-    train_dir = "/home/21916177julio/skin_cancer_dataset/train/train"
-    test_dir = "/home/21916177julio/skin_cancer_dataset/test/test"
+    train_dir = "/train/train"
+    test_dir = "/test/test"
     train_dataset = datasets.ImageFolder(train_dir, transforms_train)
     test_dataset = datasets.ImageFolder(test_dir, transforms_test)
 
