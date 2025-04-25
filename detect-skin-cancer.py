@@ -32,6 +32,8 @@ if __name__ == '__main__':
 
     # Modelo y configuración
     model = torchvision.models.resnet50(pretrained=True)
+    #congelar
+    _ = [param.requires_grad_(False) for param in model.parameters()]
     model.fc = torch.nn.Linear(model.fc.in_features, 2)
     model = model.to('cuda')
 
