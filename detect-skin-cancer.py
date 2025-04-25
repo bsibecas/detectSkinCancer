@@ -11,8 +11,6 @@ if __name__ == '__main__':
         transforms.Resize((224, 224)),
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(20),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -24,8 +22,8 @@ if __name__ == '__main__':
     ])
 
     # Carga de datasets
-    train_dir = "./skin_cancer_dataset/train/train"
-    test_dir = "./skin_cancer_dataset/test/test"
+    train_dir = "/home/21916177julio/skin_cancer_dataset/train/train"
+    test_dir = "/home/21916177julio/skin_cancer_dataset/test/test"
     train_dataset = datasets.ImageFolder(train_dir, transforms_train)
     test_dataset = datasets.ImageFolder(test_dir, transforms_test)
 
@@ -33,28 +31,19 @@ if __name__ == '__main__':
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     # Modelo y configuración
-    model = torchvision.models.resnet18(pretrained=True)
-
+    model = torchvision.models.resnet50(pretrained=True)
     model.fc = torch.nn.Linear(model.fc.in_features, 2)
-    #model.fc = torch.nn.Sequential(
-    #    torch.nn.Linear(model.fc.in_features, 512),  # Capa FC adicional
-    #    torch.nn.ReLU(),  # Función de activación ReLU
-    #    torch.nn.Dropout(p=0.25),  # Dropout con 25% de probabilidad (puedes cambiar el valor)
-    #    torch.nn.Linear(512, 2)  # Capa final de salida
-    #)
     model = model.to('cuda')
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
-
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.000001)
 
     train_loss = []
     train_accuracy = []
     test_loss = []
     test_accuracy = []
 
-    num_epochs = 50
+    num_epochs = 80
     start_time = time.time()
 
     for epoch in range(num_epochs):
@@ -89,8 +78,6 @@ if __name__ == '__main__':
         model.eval()
         running_loss = 0.0
         running_corrects = 0
-        patience = 5
-        best_test_loss = float('inf')
 
         with torch.no_grad():
             for inputs, labels in test_dataloader:
@@ -109,18 +96,6 @@ if __name__ == '__main__':
 
         print(f"[Test ] Loss: {epoch_loss:.4f} Acc: {epoch_acc:.2f}%")
 
-        # Early stopping logic
-        if epoch_loss < best_test_loss:
-            best_test_loss = epoch_loss
-            epochs_without_improvement = 0
-        else:
-            epochs_without_improvement += 1
-            
-
-        if epochs_without_improvement >= patience:
-            print(f"Early stopping at epoch {epoch + 1}")
-            break
-
     total_time = time.time() - start_time
     print(f"\nEntrenamiento finalizado en {total_time:.2f} segundos.")
 
@@ -132,10 +107,8 @@ if __name__ == '__main__':
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.title('Pérdida por época')
-    plt.yscale("log")
     plt.legend()
     plt.grid(True)
-    plt.savefig("perdida-por-epoca.png")
     plt.show()
 
     plt.figure()
@@ -146,5 +119,4 @@ if __name__ == '__main__':
     plt.title('Precisión por época')
     plt.legend()
     plt.grid(True)
-    plt.savefig("precision-por-epoca.png")
     plt.show()
